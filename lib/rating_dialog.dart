@@ -3,7 +3,7 @@ library rating_dialog;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
-class RatingDialog extends StatelessWidget {
+class RatingDialog extends StatefulWidget {
   /// The dialog's title
   final String title;
 
@@ -48,10 +48,15 @@ class RatingDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final _commentController = TextEditingController();
-    final _response = RatingDialogResponse();
+  _RatingDialogState createState() => _RatingDialogState();
+}
 
+class _RatingDialogState extends State<RatingDialog> {
+  late final _commentController = TextEditingController();
+  late final _response = RatingDialogResponse(rating: widget.initialRating);
+
+  @override
+  Widget build(BuildContext context) {
     final _content = Stack(
       alignment: Alignment.topRight,
       children: <Widget>[
@@ -64,11 +69,11 @@ class RatingDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Padding(
-                  child: image,
+                  child: widget.image,
                   padding: const EdgeInsets.only(top: 25, bottom: 25),
                 ),
                 Text(
-                  title,
+                  widget.title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 25,
@@ -77,62 +82,51 @@ class RatingDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  message,
+                  widget.message,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 15),
                 ),
                 const SizedBox(height: 10),
                 Center(
                   child: RatingBar.builder(
-                    initialRating: initialRating.toDouble(),
-                    glowColor: ratingColor,
+                    initialRating: _response.rating.toDouble(),
+                    glowColor: widget.ratingColor,
                     minRating: 1.0,
                     direction: Axis.horizontal,
                     allowHalfRating: false,
                     itemCount: 5,
                     itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                    onRatingUpdate: (rating) =>
-                        _response.rating = rating.toInt(),
+                    onRatingUpdate: (rating) => _response.rating = rating.toInt(),
                     itemBuilder: (context, _) => Icon(
                       Icons.star,
-                      color: ratingColor,
+                      color: widget.ratingColor,
                     ),
-                  ),
-                ),
-                TextField(
-                  controller: _commentController,
-                  textAlign: TextAlign.center,
-                  textInputAction: TextInputAction.newline,
-                  minLines: 1,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: commentHint,
                   ),
                 ),
                 TextButton(
                   child: Text(
-                    submitButton,
+                    widget.submitButton,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
                     ),
                   ),
                   onPressed: () {
-                    if (!force) Navigator.pop(context);
+                    if (!widget.force) Navigator.pop(context);
                     _response.comment = _commentController.text;
-                    onSubmitted.call(_response);
+                    widget.onSubmitted.call(_response);
                   },
                 ),
               ],
             ),
           ),
         ),
-        if (!force && onCancelled != null) ...[
+        if (!widget.force && widget.onCancelled != null) ...[
           IconButton(
             icon: const Icon(Icons.close, size: 18),
             onPressed: () {
               Navigator.pop(context);
-              onCancelled!.call();
+              widget.onCancelled!.call();
             },
           )
         ]
@@ -151,9 +145,11 @@ class RatingDialog extends StatelessWidget {
 }
 
 class RatingDialogResponse {
+  RatingDialogResponse({this.comment = '', this.rating = 1});
+
   /// The user's comment response
-  String comment = '';
+  String comment;
 
   /// The user's rating response
-  int rating = 1;
+  int rating;
 }
